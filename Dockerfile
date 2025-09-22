@@ -1,6 +1,9 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+# Install necessary system dependencies for npm
+RUN apk add --no-cache build-base python3 make
+
 WORKDIR /app
 
 # Copy package files
