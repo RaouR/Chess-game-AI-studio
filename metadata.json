@@ -1,0 +1,5 @@
+{
+  "name": "Online Chess",
+  "description": "A modern chess application where you can challenge a powerful AI opponent or play against a friend using a shareable link. Features adjustable AI difficulty, drag-and-drop moves, and a clean interface.",
+  "requestFramePermissions": []
+}
