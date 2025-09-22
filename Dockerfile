@@ -7,8 +7,8 @@ RUN apk add --no-cache build-base python3 make
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
+COPY package.json package-lock.json ./
+RUN npm install --only=production && npm cache clean --force
 
 # Copy source code
 COPY . .
