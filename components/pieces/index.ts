@@ -1,15 +1,15 @@
-import bishopB from './bishop-b.svg';
-import bishopW from './bishop-w.svg';
-import kingB from './king-b.svg';
-import kingW from './king-w.svg';
-import knightB from './knight-b.svg';
-import knightW from './knight-w.svg';
-import pawnB from './pawn-b.svg';
-import pawnW from './pawn-w.svg';
-import queenB from './queen-b.svg';
-import queenW from './queen-w.svg';
-import rookB from './rook-b.svg';
-import rookW from './rook-w.svg';
+import bishopB from './bishop-b.svg?raw';
+import bishopW from './bishop-w.svg?raw';
+import kingB from './king-b.svg?raw';
+import kingW from './king-w.svg?raw';
+import knightB from './knight-b.svg?raw';
+import knightW from './knight-w.svg?raw';
+import pawnB from './pawn-b.svg?raw';
+import pawnW from './pawn-w.svg?raw';
+import queenB from './queen-b.svg?raw';
+import queenW from './queen-w.svg?raw';
+import rookB from './rook-b.svg?raw';
+import rookW from './rook-w.svg?raw';
 
 const PIECE_SVGS = {
   b: {

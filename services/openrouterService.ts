@@ -40,56 +40,66 @@ ${fen}
 Legal moves:
 [${legalMoves.join(', ')}]`;
 
-    try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'http://localhost:3000', // Update with your actual domain for production
-                'X-Title': 'Online Chess App',
-            },
-            body: JSON.stringify({
-                model: 'google/gemini-2.0-flash-exp:free', // Using Gemini 2.0 Flash via OpenRouter
-                messages: [
-                    { role: 'system', content: systemInstruction },
-                    { role: 'user', content: userMessage }
-                ],
-                temperature: 0.2,
-                max_tokens: 10, // Limit response to just the move
-            }),
-        });
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 2000; // 1 second
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
-        }
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'http://localhost:3000', // Update with your actual domain for production
+                    'X-Title': 'Online Chess App',
+                },
+                body: JSON.stringify({
+                    model: 'google/gemini-2.0-flash-exp:free', // Using Gemini 2.0 Flash via OpenRouter
+                    messages: [
+                        { role: 'system', content: systemInstruction },
+                        { role: 'user', content: userMessage }
+                    ],
+                    temperature: 0.2,
+                    max_tokens: 10, // Limit response to just the move
+                }),
+            });
 
-        const data = await response.json();
-        const move = data.choices[0]?.message?.content?.trim();
-
-        if (!move) {
-            throw new Error("No move returned from OpenRouter API");
-        }
-
-        if (legalMoves.includes(move)) {
-            return move;
-        } else {
-            console.error("AI returned a move that is not in the legal moves list:", move);
-            console.warn("Legal moves were:", legalMoves);
-            if (legalMoves.length > 0) {
-                const fallbackMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
-                console.warn("Falling back to a random legal move:", fallbackMove);
-                return fallbackMove;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
             }
-            return null;
-        }
 
-    } catch (error) {
-        console.error("Error communicating with OpenRouter API:", error);
-        if (error instanceof Error) {
-            console.error("Error details:", error.message, error.stack);
+            const data = await response.json();
+            const move = data.choices[0]?.message?.content?.trim();
+
+            if (!move) {
+                throw new Error("No move returned from OpenRouter API");
+            }
+
+            if (legalMoves.includes(move)) {
+                return move;
+            } else {
+                console.error("AI returned a move that is not in the legal moves list:", move);
+                console.warn("Legal moves were:", legalMoves);
+                if (legalMoves.length > 0) {
+                    const fallbackMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+                    console.warn("Falling back to a random legal move:", fallbackMove);
+                    return fallbackMove;
+                }
+                return null;
+            }
+
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error);
+            if (attempt === MAX_RETRIES) {
+                console.error("All retry attempts failed for OpenRouter API:", error);
+                if (error instanceof Error) {
+                    console.error("Error details:", error.message, error.stack);
+                }
+                throw new Error(`Failed to get move from AI API after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
         }
-        throw new Error(`Failed to get move from AI API: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+    throw new Error("Unexpected error in retry loop");
 };
