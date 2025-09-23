@@ -3,6 +3,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+    container_name: chess-app
+    hostname: chess-app
     restart: unless-stopped
     environment:
       - NODE_ENV=production
