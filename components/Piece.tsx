@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Piece } from 'chess.js';
-import { PIECE_SVGS } from '../pieces';
+import { PIECE_SVGS } from 'components/pieces';
 
 interface PieceProps {
   piece: Piece;
