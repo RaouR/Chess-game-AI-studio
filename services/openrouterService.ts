@@ -1,4 +1,4 @@
-import type { Difficulty } from '../types';
+import type { Difficulty } from '../types.js';
 
 const apiKey = process.env.OPENROUTER_API_KEY;
 
@@ -7,7 +7,7 @@ if (!apiKey) {
     console.error("OpenRouter API key is not configured. Please set your OpenRouter key in the OPENROUTER_API_KEY environment variable. The AI will not function.");
 }
 
-const difficultyPrompts = {
+const difficultyPrompts: Record<Difficulty, string> = {
     easy: "You are a beginner chess player. Pick a reasonable but not optimal move. Sometimes make a mistake.",
     medium: "You are an intermediate chess player. Analyze the position and pick a strong move. Avoid obvious blunders.",
     hard: "You are a world-class chess grandmaster. Analyze the position deeply and pick the absolute best move.",
@@ -20,7 +20,7 @@ export const getAiMove = async (
     difficulty: Difficulty
 ): Promise<string | null> => {
     if (!apiKey) {
-        throw new Error("OpenRouter API key not found. Please set it in the OPENROUTE_API_KEY environment variable.");
+        throw new Error("OpenRouter API key not found. Please set it in the OPENROUTER_API_KEY environment variable.");
     }
 
     const systemInstruction = `You are a chess engine. Your task is to analyze the given chess game and determine the best next move for the current player.
@@ -87,6 +87,9 @@ Legal moves:
 
     } catch (error) {
         console.error("Error communicating with OpenRouter API:", error);
-        throw new Error("Failed to get move from AI API.");
+        if (error instanceof Error) {
+            console.error("Error details:", error.message, error.stack);
+        }
+        throw new Error(`Failed to get move from AI API: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
