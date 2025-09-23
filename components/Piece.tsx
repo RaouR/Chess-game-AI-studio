@@ -24,8 +24,9 @@ const PieceComponent: React.FC<PieceProps> = ({ piece, onDragStart, isBeingDragg
       onDragStart={onDragStart}
       className={`w-[85%] h-[85%] z-20 pointer-events-none ${dragClass}`}
       style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.4))' }}
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    >
+      <img src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`} alt={`${color} ${type}`} className="w-full h-full" />
+    </div>
   );
 };
 

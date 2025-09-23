@@ -3,6 +3,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+      args:
+        - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     container_name: chess-app
     hostname: chess-app
     restart: unless-stopped
