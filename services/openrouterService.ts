@@ -40,8 +40,8 @@ ${fen}
 Legal moves:
 [${legalMoves.join(', ')}]`;
 
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 2000; // 1 second
+    const MAX_RETRIES = 5;
+    const RETRY_DELAY = 4000; // 4 second
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
