@@ -50,7 +50,7 @@ Legal moves:
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
-                    'HTTP-Referer': 'http://localhost:3000', // Update with your actual domain for production
+                    'HTTP-Referer': 'http://chess.raour.site:3000', // Update with your actual domain for production
                     'X-Title': 'Online Chess App',
                 },
                 body: JSON.stringify({
@@ -66,7 +66,19 @@ Legal moves:
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+                const errorMessage = errorData.error?.message || response.statusText;
+                
+                // Check for rate limit errors specifically
+                if (response.status === 429 || errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
+                    console.warn(`Rate limit detected on attempt ${attempt}. Waiting longer...`);
+                    // For rate limits, use exponential backoff with jitter
+                    const jitter = Math.random() * 1000; // Add up to 1 second jitter
+                    const delay = Math.pow(2, attempt) * 4000 + jitter; // Exponential backoff based on attempt
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue; // Retry without throwing error yet
+                }
+                
+                throw new Error(`OpenRouter API error: ${errorMessage}`);
             }
 
             const data = await response.json();
@@ -96,9 +108,19 @@ Legal moves:
                 if (error instanceof Error) {
                     console.error("Error details:", error.message, error.stack);
                 }
+                
+                // Provide more specific error message for rate limiting
+                if (error instanceof Error && error.message.includes('rate limit')) {
+                    throw new Error("AI service is currently rate limited. Please try again in a few minutes.");
+                }
+                
                 throw new Error(`Failed to get move from AI API after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
+            
+            // Exponential backoff with jitter for non-rate-limit errors
+            const jitter = Math.random() * 1000; // Add up to 1 second jitter
+            const delay = Math.pow(2, attempt) * 4000 + jitter; // Exponential backoff based on attempt
+            await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
     throw new Error("Unexpected error in retry loop");
