@@ -2,6 +2,42 @@ import type { Difficulty } from '../types.js';
 
 const LLAMA_SERVER_URL = import.meta.env.VITE_LLAMA_SERVER_URL || 'http://llama_server:8080/v1/chat/completions';
 
+// Log environment variables and URL for debugging
+console.log('Environment variables:', import.meta.env);
+console.log('Llama server URL:', LLAMA_SERVER_URL);
+
+// Enhanced connectivity test
+const testLlamaServerConnectivity = async () => {
+  try {
+    const testUrl = LLAMA_SERVER_URL.replace('/v1/chat/completions', '');
+    console.log('Testing connectivity to:', testUrl);
+    
+    // Try multiple endpoints to diagnose the issue
+    const endpoints = [
+      testUrl,
+      'http://llama_server:8080',
+      'http://llama_server:8080/health', // Common health endpoint
+      'http://llama_server:8080/v1/models' // Common OpenAI-compatible endpoint
+    ];
+    
+    for (const endpoint of endpoints) {
+      try {
+        console.log('Testing endpoint:', endpoint);
+        const response = await fetch(endpoint, { method: 'HEAD' });
+        console.log(`Endpoint ${endpoint} response status:`, response.status);
+        if (response.ok) return true;
+      } catch (error) {
+        console.error(`Endpoint ${endpoint} failed:`, error);
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Connectivity test failed:', error);
+    return false;
+  }
+};
+
 const difficultyPrompts: Record<Difficulty, string> = {
     easy: "You are a beginner chess player. Pick a reasonable but not optimal move. Sometimes make a mistake.",
     medium: "You are an intermediate chess player. Analyze the position and pick a strong move. Avoid obvious blunders.",
@@ -34,6 +70,12 @@ Legal moves:
     const MAX_RETRIES = 5;
     const RETRY_DELAY = 4000; // 4 seconds
 
+    // Test connectivity first
+    const isConnected = await testLlamaServerConnectivity();
+    if (!isConnected) {
+        throw new Error(`Cannot connect to llama server at ${LLAMA_SERVER_URL}. Please check network connectivity.`);
+    }
+
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
             const response = await fetch(LLAMA_SERVER_URL, {
@@ -50,6 +92,10 @@ Legal moves:
                     temperature: 0.2,
                     max_tokens: 10, // Limit response to just the move
                 }),
+            }).catch(error => {
+                console.error('Fetch error details:', error);
+                console.error('URL attempted:', LLAMA_SERVER_URL);
+                throw new Error(`Network error: ${error.message}`);
             });
 
             if (!response.ok) {
@@ -95,6 +141,11 @@ Legal moves:
                 console.error("All retry attempts failed for Llama.cpp API:", error);
                 if (error instanceof Error) {
                     console.error("Error details:", error.message, error.stack);
+                }
+                
+                // Provide more specific error message for network issues
+                if (error instanceof Error && error.message.includes('Network error')) {
+                    throw new Error(`Failed to connect to AI server at ${LLAMA_SERVER_URL}. Please check that the llama_server container is running and accessible on the network.`);
                 }
                 
                 // Provide more specific error message for rate limiting

@@ -1,8 +1,8 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-# Install necessary system dependencies for npm
-RUN apk add --no-cache build-base python3 make
+# Install necessary system dependencies for npm and network tools
+RUN apk add --no-cache build-base python3 make curl
 
 WORKDIR /app
 

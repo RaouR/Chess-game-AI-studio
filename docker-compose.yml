@@ -1,8 +1,10 @@
 services:
   chess-app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - LLAMA_SERVER_URL=http://llama_server:8080/v1/chat/completions
     container_name: chess-app
     hostname: chess-app
     restart: unless-stopped
