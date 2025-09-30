@@ -1,10 +1,13 @@
 import type { Difficulty } from '../types.js';
 
 const LLAMA_SERVER_URL = import.meta.env.VITE_LLAMA_SERVER_URL || 'http://llama_server:8080/v1/chat/completions';
+const LLAMA_API_KEY = import.meta.env.VITE_LLAMA_API_KEY;
 
-// Log environment variables and URL for debugging
-console.log('Environment variables:', import.meta.env);
-console.log('Llama server URL:', LLAMA_SERVER_URL);
+// Log environment variables and URL for debugging (excluding sensitive data)
+console.log('Environment variables loaded:', {
+    LLAMA_SERVER_URL,
+    LLAMA_API_KEY: LLAMA_API_KEY ? '[CONFIGURED]' : '[NOT CONFIGURED]'
+});
 
 // Enhanced connectivity test
 const testLlamaServerConnectivity = async () => {

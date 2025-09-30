@@ -11,7 +11,10 @@
   "dependencies": {
     "chess.js": "^1.4.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
