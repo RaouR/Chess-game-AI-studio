@@ -10,7 +10,10 @@ services:
       - NODE_ENV=production
     networks:
       - proxy_net
+      - llm_net
 
 networks:
   proxy_net:
+    external: true
+  llm_net:
     external: true
