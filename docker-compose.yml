@@ -8,11 +8,9 @@ services:
     container_name: chess-app
     hostname: chess-app
     restart: unless-stopped
-    ports:
-      - "3001:3001"  # Map host port 3001 to container port 3001
     environment:
       - NODE_ENV=production
-      - BACKEND_PORT=3001
+      - BACKEND_PORT=3002
       - LLAMA_SERVER_URL=http://llama_server:8080/v1/chat/completions
       - LLAMA_API_KEY=${LLAMA_API_KEY}
     networks:

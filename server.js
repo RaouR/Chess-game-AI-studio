@@ -1,9 +1,9 @@
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch');
+import express from 'express';
+import cors from 'cors';
+import fetch from 'node-fetch';
 
 const app = express();
-const port = process.env.BACKEND_PORT || 3001;
+const port = process.env.BACKEND_PORT || 3002;
 const llamaServerUrl = process.env.LLAMA_SERVER_URL || 'http://llama_server:8080/v1/chat/completions';
 const llamaApiKey = process.env.LLAMA_API_KEY;
 
