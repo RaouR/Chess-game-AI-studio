@@ -1,70 +1,14 @@
 import type { Difficulty } from '../types.js';
 
 const getBaseUrl = () => {
-    if (import.meta.env.DEV) {                        const data = await response.json();
-            console.log('Raw response from backend:', JSON.stringify(data, null, 2));
-            
-            const move = data.choices?.[0]?.message?.content?.trim();
-            console.log('Extracted move:', move);
-
-            if (!move) {
-                console.error('Invalid response format:', JSON.stringify(data, null, 2));
-                throw new Error("No move returned from API");
-            }
-
-            if (legalMoves.includes(move)) {
-                console.log('Move is valid and legal:', move);
-                return move;a = await response.json();
-            console.log('Received response from backend:', data);
-            
-            const move = data.choices?.[0]?.message?.content?.trim();
-            console.log('Extracted move:', move);
-
-            if (!move) {
-                console.error('Invalid response format:', data);
-                throw new Error("No move returned from API");
-            }
-
-            if (legalMoves.includes(move)) {
-                return move;return 'http://localhost:3002';
+    if (import.meta.env.DEV) {
+        return 'http://localhost:3002';
     }
     return '';
 };
 
 // Log the base URL for debugging
 console.log('Base URL:', getBaseUrl());
-
-// Enhanced connectivity test
-const testLlamaServerConnectivity = async () => {
-  try {
-    const testUrl = LLAMA_SERVER_URL.replace('/v1/chat/completions', '');
-    console.log('Testing connectivity to:', testUrl);
-    
-    // Try multiple endpoints to diagnose the issue
-    const endpoints = [
-      testUrl,
-      'http://llama_server:8080',
-      'http://llama_server:8080/health', // Common health endpoint
-      'http://llama_server:8080/v1/models' // Common OpenAI-compatible endpoint
-    ];
-    
-    for (const endpoint of endpoints) {
-      try {
-        console.log('Testing endpoint:', endpoint);
-        const response = await fetch(endpoint, { method: 'HEAD' });
-        console.log(`Endpoint ${endpoint} response status:`, response.status);
-        if (response.ok) return true;
-      } catch (error) {
-        console.error(`Endpoint ${endpoint} failed:`, error);
-      }
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Connectivity test failed:', error);
-    return false;
-  }
-};
 
 const difficultyPrompts: Record<Difficulty, string> = {
     easy: "You are a beginner chess player. Pick a reasonable but not optimal move. Sometimes make a mistake.",
@@ -121,30 +65,40 @@ Legal moves:
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.json().catch(() => ({}));
                 const errorMessage = errorData.error?.message || response.statusText;
                 
-                // Check for rate limit errors specifically
+                console.error('API error response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorData
+                });
+                
                 if (response.status === 429 || errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
                     console.warn(`Rate limit detected on attempt ${attempt}. Waiting longer...`);
-                    // For rate limits, use exponential backoff with jitter
-                    const jitter = Math.random() * 1000; // Add up to 1 second jitter
-                    const delay = Math.pow(2, attempt) * 4000 + jitter; // Exponential backoff based on attempt
+                    const jitter = Math.random() * 1000;
+                    const delay = Math.pow(2, attempt) * 4000 + jitter;
                     await new Promise(resolve => setTimeout(resolve, delay));
-                    continue; // Retry without throwing error yet
+                    continue;
                 }
                 
-                throw new Error(`Llama.cpp API error: ${errorMessage}`);
+                throw new Error(`API error: ${errorMessage}`);
             }
 
             const data = await response.json();
-            const move = data.choices[0]?.message?.content?.trim();
+            console.log('Raw response from backend:', JSON.stringify(data, null, 2));
+            
+            // Extract move from the simplified response format
+            const move = data.move?.trim();
+            console.log('Extracted move:', move);
 
             if (!move) {
-                throw new Error("No move returned from Llama.cpp API");
+                console.error('Invalid response format:', JSON.stringify(data, null, 2));
+                throw new Error("No move returned from API");
             }
 
             if (legalMoves.includes(move)) {
+                console.log('Move is valid and legal:', move);
                 return move;
             } else {
                 console.error("AI returned a move that is not in the legal moves list:", move);
@@ -158,19 +112,21 @@ Legal moves:
             }
 
         } catch (error) {
-            console.error(`Attempt ${attempt} failed:`, error);
+            console.error(`Attempt ${attempt} failed:`, {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined
+            });
+            
             if (attempt === MAX_RETRIES) {
-                console.error("All retry attempts failed for Llama.cpp API:", error);
-                if (error instanceof Error) {
-                    console.error("Error details:", error.message, error.stack);
-                }
+                console.error("All retry attempts failed:", {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : undefined
+                });
                 
-                // Provide more specific error message for network issues
                 if (error instanceof Error && error.message.includes('Network error')) {
                     throw new Error(`Failed to connect to AI server at ${getBaseUrl()}/api/llama. Please check that the server is running and accessible.`);
                 }
                 
-                // Provide more specific error message for rate limiting
                 if (error instanceof Error && error.message.includes('rate limit')) {
                     throw new Error("AI service is currently rate limited. Please try again in a few minutes.");
                 }
@@ -178,9 +134,8 @@ Legal moves:
                 throw new Error(`Failed to get move from AI API after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
             
-            // Exponential backoff with jitter for non-rate-limit errors
-            const jitter = Math.random() * 1000; // Add up to 1 second jitter
-            const delay = Math.pow(2, attempt) * 4000 + jitter; // Exponential backoff based on attempt
+            const jitter = Math.random() * 1000;
+            const delay = Math.pow(2, attempt) * 4000 + jitter;
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
