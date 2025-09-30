@@ -1,8 +1,32 @@
 import type { Difficulty } from '../types.js';
 
 const getBaseUrl = () => {
-    if (import.meta.env.DEV) {
-        return 'http://localhost:3002';
+    if (import.meta.env.DEV) {                        const data = await response.json();
+            console.log('Raw response from backend:', JSON.stringify(data, null, 2));
+            
+            const move = data.choices?.[0]?.message?.content?.trim();
+            console.log('Extracted move:', move);
+
+            if (!move) {
+                console.error('Invalid response format:', JSON.stringify(data, null, 2));
+                throw new Error("No move returned from API");
+            }
+
+            if (legalMoves.includes(move)) {
+                console.log('Move is valid and legal:', move);
+                return move;a = await response.json();
+            console.log('Received response from backend:', data);
+            
+            const move = data.choices?.[0]?.message?.content?.trim();
+            console.log('Extracted move:', move);
+
+            if (!move) {
+                console.error('Invalid response format:', data);
+                throw new Error("No move returned from API");
+            }
+
+            if (legalMoves.includes(move)) {
+                return move;return 'http://localhost:3002';
     }
     return '';
 };
@@ -76,6 +100,12 @@ Legal moves:
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
+            console.log(`Attempt ${attempt}: Sending request to ${getBaseUrl()}/api/llama`);
+            console.log('Request body:', {
+                systemMessage: systemInstruction.substring(0, 100) + '...',
+                userMessage: userMessage.substring(0, 100) + '...'
+            });
+
             const response = await fetch(`${getBaseUrl()}/api/llama`, {
                 method: 'POST',
                 headers: {

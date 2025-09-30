@@ -99,16 +99,21 @@ app.post('/api/llama', async (req, res) => {
     }
 
     const data = await response.json();
-    console.log('Received response from Llama server:', data);
+    console.log('Received response from Llama server:', JSON.stringify(data, null, 2));
 
-    const move = data.choices[0]?.message?.content?.trim();
+    // The response comes back as [Object] in the log, so let's explicitly log the message
+    console.log('Raw message content:', JSON.stringify(data.choices?.[0]?.message, null, 2));
+    
+    const move = data.choices?.[0]?.message?.content?.trim();
     
     if (!move) {
-      console.error('No move found in response:', data);
+      console.error('No move found in response:', JSON.stringify(data, null, 2));
       throw new Error('No valid move received from Llama server');
     }
 
     console.log('Successfully extracted move:', move);
+    
+    // Send a simplified response to the frontend
     res.json({ move });
   } catch (error) {
     console.error('Error proxying to llama server:', {
