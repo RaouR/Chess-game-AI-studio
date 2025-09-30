@@ -1,13 +1,14 @@
 import type { Difficulty } from '../types.js';
 
-const LLAMA_SERVER_URL = import.meta.env.VITE_LLAMA_SERVER_URL || 'http://llama_server:8080/v1/chat/completions';
-const LLAMA_API_KEY = import.meta.env.VITE_LLAMA_API_KEY;
+const getBaseUrl = () => {
+    if (import.meta.env.DEV) {
+        return 'http://localhost:3002';
+    }
+    return '';
+};
 
-// Log environment variables and URL for debugging (excluding sensitive data)
-console.log('Environment variables loaded:', {
-    LLAMA_SERVER_URL,
-    LLAMA_API_KEY: LLAMA_API_KEY ? '[CONFIGURED]' : '[NOT CONFIGURED]'
-});
+// Log the base URL for debugging
+console.log('Base URL:', getBaseUrl());
 
 // Enhanced connectivity test
 const testLlamaServerConnectivity = async () => {
@@ -73,31 +74,19 @@ Legal moves:
     const MAX_RETRIES = 5;
     const RETRY_DELAY = 4000; // 4 seconds
 
-    // Test connectivity first
-    const isConnected = await testLlamaServerConnectivity();
-    if (!isConnected) {
-        throw new Error(`Cannot connect to llama server at ${LLAMA_SERVER_URL}. Please check network connectivity.`);
-    }
-
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            const response = await fetch(LLAMA_SERVER_URL, {
+            const response = await fetch(`${getBaseUrl()}/api/llama`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    model: 'qwen2.5-coder-7b', // Model name for llama.cpp
-                    messages: [
-                        { role: 'system', content: systemInstruction },
-                        { role: 'user', content: userMessage }
-                    ],
-                    temperature: 0.2,
-                    max_tokens: 10, // Limit response to just the move
+                    systemMessage: systemInstruction,
+                    userMessage: userMessage
                 }),
             }).catch(error => {
                 console.error('Fetch error details:', error);
-                console.error('URL attempted:', LLAMA_SERVER_URL);
                 throw new Error(`Network error: ${error.message}`);
             });
 
@@ -148,7 +137,7 @@ Legal moves:
                 
                 // Provide more specific error message for network issues
                 if (error instanceof Error && error.message.includes('Network error')) {
-                    throw new Error(`Failed to connect to AI server at ${LLAMA_SERVER_URL}. Please check that the llama_server container is running and accessible on the network.`);
+                    throw new Error(`Failed to connect to AI server at ${getBaseUrl()}/api/llama. Please check that the server is running and accessible.`);
                 }
                 
                 // Provide more specific error message for rate limiting

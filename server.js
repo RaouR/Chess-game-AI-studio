@@ -44,14 +44,41 @@ app.get('/api/health', async (req, res) => {
 // Proxy endpoint for llama server
 app.post('/api/llama', async (req, res) => {
   try {
-    console.log('Received request to llama server:', req.body);
+    console.log('Received request to llama server:', {
+      systemMessage: req.body.systemMessage?.substring(0, 50) + '...',
+      userMessage: req.body.userMessage?.substring(0, 50) + '...'
+    });
+    
+    if (!req.body.systemMessage || !req.body.userMessage) {
+      throw new Error('Missing required fields: systemMessage and userMessage');
+    }
+
+    console.log('Connecting to Llama server at:', llamaServerUrl);
     
     const headers = {
       'Content-Type': 'application/json'
     };
     if (llamaApiKey) {
       headers['Authorization'] = `Bearer ${llamaApiKey}`;
+      console.log('Using API key authentication');
+    } else {
+      console.log('No API key provided');
     }
+
+    const requestBody = {
+      model: 'qwen2.5-coder-7b',
+      messages: [
+        { role: 'system', content: req.body.systemMessage },
+        { role: 'user', content: req.body.userMessage }
+      ],
+      temperature: 0.2,
+      max_tokens: 10,
+    };
+
+    console.log('Sending request to Llama server with body:', {
+      ...requestBody,
+      messages: requestBody.messages.map(m => ({ ...m, content: m.content.substring(0, 50) + '...' }))
+    });
 
     const response = await fetch(llamaServerUrl, {
       method: 'POST',
@@ -72,18 +99,29 @@ app.post('/api/llama', async (req, res) => {
     }
 
     const data = await response.json();
+    console.log('Received response from Llama server:', data);
+
     const move = data.choices[0]?.message?.content?.trim();
     
     if (!move) {
+      console.error('No move found in response:', data);
       throw new Error('No valid move received from Llama server');
     }
 
+    console.log('Successfully extracted move:', move);
     res.json({ move });
   } catch (error) {
-    console.error('Error proxying to llama server:', error);
+    console.error('Error proxying to llama server:', {
+      error: error.message,
+      stack: error.stack,
+      llamaServerUrl,
+      hasApiKey: !!llamaApiKey
+    });
+    
     res.status(500).json({ 
       error: 'Failed to connect to llama server',
-      message: error.message 
+      message: error.message,
+      details: error instanceof Error ? error.stack : undefined
     });
   }
 });
