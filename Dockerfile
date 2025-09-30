@@ -13,11 +13,8 @@ RUN npm install && npm cache clean --force
 # Copy source code
 COPY . .
 
-# Create .env file with build arguments
-ARG OPENROUTER_API_KEY
-RUN if [ -z "$OPENROUTER_API_KEY" ]; then echo "WARNING: OPENROUTER_API_KEY is empty"; fi
-RUN echo "OPENROUTER_API_KEY=${OPENROUTER_API_KEY}" > .env
-RUN echo "NODE_ENV=production" >> .env
+# Create .env file
+RUN echo "NODE_ENV=production" > .env
 RUN echo "Contents of .env file:" && cat .env
 
 # Build the application

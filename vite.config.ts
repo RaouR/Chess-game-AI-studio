@@ -29,7 +29,6 @@ export default defineConfig(({ mode }) => {
         },
       ],
       define: {
-        'process.env.OPENROUTER_API_KEY': JSON.stringify(env.OPENROUTER_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(mode),
       },
       resolve: {

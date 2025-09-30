@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && ls -la components/pieces",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

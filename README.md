@@ -1,6 +1,6 @@
 # Online Chess
 
-A modern chess application where you can challenge a powerful AI opponent or play against a friend. Built with React, TypeScript, and powered by OpenRouter AI.
+A modern chess application where you can challenge a powerful AI opponent or play against a friend. Built with React, TypeScript, and powered by llama.cpp AI.
 
 ## Features
 
@@ -16,7 +16,7 @@ A modern chess application where you can challenge a powerful AI opponent or pla
 - **Frontend**: React, TypeScript
 - **Styling**: Tailwind CSS
 - **Chess Logic**: `chess.js`
-- **AI Opponent**: OpenRouter API (supports multiple AI models)
+- **AI Opponent**: llama.cpp server (self-hosted AI)
 - **Deployment**: Docker, Docker Compose, Nginx Proxy Manager integration
 
 ## Getting Started with Docker
@@ -41,13 +41,8 @@ You must have [Docker](https://www.docker.com/get-started) and [Docker Compose](
     cp .env.example .env
     ```
 
-3.  **Add Your API Key**
-    Open the newly created `.env` file in your text editor. You need to add your **OpenRouter API Key**. You can get one from the [OpenRouter website](https://openrouter.ai/keys).
-
-    ```env
-    # .env
-    OPENROUTE_API_KEY=your_openrouter_api_key_here
-    ```
+3.  **Configure AI Server**
+    Ensure you have a llama.cpp server running locally or remotely. The application expects the server to be available at `http://llama_server:8080/v1/chat/completions`. Update the `LLAMA_SERVER_URL` in `services/llamaService.ts` if needed.
 
 4.  **Create the External Network (if not exists)**
     Ensure you have the `proxy_net` network created for Nginx Proxy Manager integration:

@@ -3,7 +3,7 @@ import type { Piece, PieceSymbol } from 'chess.js';
 import { Chess } from 'chess.js';
 
 import { GameState, type Difficulty, type PlayerColor, type Move, type GameOver, type GameMode, type Square } from './types';
-import { getAiMove } from './services/openrouterService';
+import { getAiMove } from './services/llamaService';
 import Chessboard from './components/Chessboard';
 import Controls from './components/Controls';
 import Modal from './components/Modal';
