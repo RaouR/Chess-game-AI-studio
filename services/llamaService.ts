@@ -1,6 +1,6 @@
 import type { Difficulty } from '../types.js';
 
-const LLAMA_SERVER_URL = 'http://llama_server:8080/v1/chat/completions';
+const LLAMA_SERVER_URL = import.meta.env.VITE_LLAMA_SERVER_URL || 'http://llama_server:8080/v1/chat/completions';
 
 const difficultyPrompts: Record<Difficulty, string> = {
     easy: "You are a beginner chess player. Pick a reasonable but not optimal move. Sometimes make a mistake.",

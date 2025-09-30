@@ -13,8 +13,10 @@ RUN npm install && npm cache clean --force
 # Copy source code
 COPY . .
 
-# Create .env file
-RUN echo "NODE_ENV=production" > .env
+# Create .env file with build arguments
+ARG LLAMA_SERVER_URL=http://llama_server:8080/v1/chat/completions
+RUN echo "NODE_ENV=production" > .env && \
+    echo "VITE_LLAMA_SERVER_URL=${LLAMA_SERVER_URL}" >> .env
 RUN echo "Contents of .env file:" && cat .env
 
 # Build the application
